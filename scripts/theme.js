@@ -1,27 +1,24 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const toggleBtn = document.getElementById("theme-toggle");
-  if (!toggleBtn) return;
-  const body = document.body;
+    const themeToggleBtn = document.getElementById("theme-toggle");
+    const body = document.body;
 
-  if (localStorage.getItem("theme") === "dark") {
-    body.classList.add("dark-mode");
-    toggleBtn.textContent = "☀️ Mode clair";
-  } else {
-    toggleBtn.textContent = "🌙 Mode sombre";
-  }
+    // Vérifier si un thème a déjà été défini par l'utilisateur
+    const currentTheme = localStorage.getItem("theme");
+    if (currentTheme) {
+        body.classList.add(currentTheme);
+    }
 
-  toggleBtn.addEventListener("click", () => {
-    body.classList.add("fade");
-    setTimeout(() => {
-      body.classList.toggle("dark-mode");
-      if (body.classList.contains("dark-mode")) {
-        localStorage.setItem("theme", "dark");
-        toggleBtn.textContent = "☀️ Mode clair";
-      } else {
-        localStorage.setItem("theme", "light");
-        toggleBtn.textContent = "🌙 Mode sombre";
-      }
-      body.classList.remove("fade");
-    }, 200);
-  });
+    themeToggleBtn.addEventListener("click", () => {
+        // Basculer la classe 'dark-mode' sur le corps de la page
+        body.classList.toggle("dark-mode");
+
+        // Mettre à jour le texte du bouton et enregistrer la préférence
+        if (body.classList.contains("dark-mode")) {
+            themeToggleBtn.textContent = "☀️ Mode clair";
+            localStorage.setItem("theme", "dark-mode");
+        } else {
+            themeToggleBtn.textContent = "🌙 Mode sombre";
+            localStorage.removeItem("theme"); // ou localStorage.setItem("theme", "light-mode");
+        }
+    });
 });

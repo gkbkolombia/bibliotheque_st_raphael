@@ -1,30 +1,44 @@
 [
   {
     "name": "maths",
-    "file": "maths.json"
+    "file": "maths.json",
+    "icon": "fa-calculator",
+    "color": "#3498db" 
   },
   {
     "name": "pct",
-    "file": "pct.json"
+    "file": "pct.json",
+    "icon": "fa-flask",
+    "color": "#2ecc71"
   },
   {
     "name": "svt",
-    "file": "svt.json"
+    "file": "svt.json",
+    "icon": "fa-leaf",
+    "color": "#e67e22"
   },
   {
     "name": "histo-geo",
-    "file": "histo-geo.json"
+    "file": "histo-geo.json",
+    "icon": "fa-map",
+    "color": "#9b59b6" 
   },
   {
     "name": "ecm",
-    "file": "ecm.json"
+    "file": "ecm.json",
+    "icon": "fa-handshake",
+    "color": "#f1c40f" 
   },
   {
     "name": "anglais",
-    "file": "anglais.json"
+    "file": "anglais.json",
+    "icon": "fa-globe-americas",
+    "color": "#e74c3c"
   },
   {
     "name": "francais",
-    "file": "francais.json"
+    "file": "francais.json",
+    "icon": "fa-pen",
+    "color": "#1abc9c"
   }
 ]
