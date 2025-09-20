@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bibliothèque scolaire - Accueil</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 0; }
+    header { background: #2c3e50; color: white; padding: 20px; text-align: center; }
+    h1 { margin: 0; }
+
+    /* Boutons matières */
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    .btn-matiere {
+      display: block;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: #2c3e50;
+      font-weight: bold;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      transition: 0.3s;
+      text-align: center;
+    }
+    .btn-matiere:hover {
+      background: #2980b9;
+      color: white;
+      transform: scale(1.05);
+    }
+    .btn-matiere i { font-size: 24px; margin-bottom: 10px; display: block; }
+
+    /* Recherche */
+    #searchInput { padding:10px; width:60%; border-radius:5px; border:1px solid #ccc; }
+    #searchBtn { padding:10px 15px; border:none; background:#2980b9; color:white; border-radius:5px; cursor:pointer; }
+    #searchContainer { text-align:center; margin:20px; position:relative; }
+
+    /* Autocomplétion */
+    #suggestionList {
+      position:absolute; 
+      top:45px; 
+      left:20%; 
+      width:60%; 
+      background:white; 
+      border:1px solid #ccc; 
+      border-radius:5px; 
+      max-height:200px; 
+      overflow-y:auto; 
+      list-style:none; 
+      padding:0; 
+      margin:0;
+      z-index:1000;
+    }
+    #suggestionList li { padding:5px 10px; cursor:pointer; }
+    #suggestionList li:hover { background:#2980b9; color:white; }
+
+    /* Résultats recherche */
+    #resultatsRecherche { max-width:800px; margin:auto; padding:20px; }
+
+    footer { margin-top: 30px; padding: 15px; background: #2c3e50; color: white; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>📚 Bibliothèque scolaire</h1>
+  <button id="theme-toggle">🌙 Mode sombre</button>
+
+  <div id="searchContainer">
+    <input type="text" id="searchInput" placeholder="🔍 Rechercher un document..." oninput="suggestions()">
+    <button id="searchBtn" onclick="rechercher()">Rechercher</button>
+    <ul id="suggestionList"></ul>
+  </div>
+
+  <p>Sélectionne une matière :</p>
+  <div id="matiereContainer" class="container"></div>
+
+  <div id="resultatsRecherche"></div>
+
+  <footer>
+    © 2025 CS St RAPHAEL - Bibliothèque scolaire
+  </footer>
+
+  <script>
+    let matieresCache = [];
+    let touspdfs = []; // Contient { title: "...", file: "...", matiereName: "..." }
+
+    // Charger les matières au démarrage
+    fetch("subjects.json")
+      .then(r => r.json())
+      .then(data => {
+        matieresCache = data; // data est le contenu de subjects.json
+
+        // Générer les boutons matières
+        let container = document.getElementById("matiereContainer");
+        container.innerHTML = "";
+        data.forEach(m => { // m est un objet de subjects.json (ex: {name:"maths", file:"maths.json"})
+          let link = document.createElement("a");
+          link.href = `matiere.html?matiere=${m.name}`; // m.name ici est "maths", "pct", etc.
+          link.className = "btn-matiere";
+          link.innerHTML = `<i class="fas fa-book"></i> ${m.name.charAt(0).toUpperCase() + m.name.slice(1)}`; // Affiche le nom avec majuscule
+          container.appendChild(link);
+        });
+
+        // Préparer la liste globale des PDFs pour autocomplétion et recherche
+        // Promise.all pour charger tous les JSON de matière
+        Promise.all(data.map(m => fetch(`json/${m.file}`).then(r => r.json())))
+          .then(jsonsArray => { // jsonsArray est un tableau [ [pdfs_maths], [pdfs_francais], ... ]
+            jsonsArray.forEach((pdfList, index) => { // pdfList est le tableau des PDFs pour une matière
+              const matiereName = data[index].name; // Récupère le nom de la matière correspondante depuis matieresCache
+              
+              if (Array.isArray(pdfList)) { // Vérifie que c'est bien un tableau de PDFs
+                pdfList.forEach(pdfItem => { // pdfItem est { title: "...", file: "..." }
+                  touspdfs.push({
+                    title: pdfItem.title,
+                    fichier: pdfItem.file,
+                    matiereName: matiereName
+                  });
+                });
+              }
+            });
+          });
+      })
+      .catch(err => {
+        console.error("Erreur de chargement des matières ou des PDFs:", err);
+        document.getElementById("matiereContainer").innerHTML =
+          "<p style='color:red'>⚠️ Impossible de charger la liste des matières.</p>";
+      });
+
+    const suggestionList = document.getElementById("suggestionList");
+
+    // Suggestions automatiques
+    function suggestions() {
+      let val = document.getElementById("searchInput").value.toLowerCase();
+      suggestionList.innerHTML = "";
+      if (!val) return;
+
+      // Filtre sur le titre et le chemin du fichier
+      let matches = touspdfs.filter(d => 
+        d.title.toLowerCase().includes(val) || d.fichier.toLowerCase().includes(val)
+      ).slice(0, 10);
+
+      matches.forEach(match => {
+        let li = document.createElement("li");
+        li.textContent = `${match.matiereName.charAt(0).toUpperCase() + match.matiereName.slice(1)} → ${match.title}`;
+        li.onclick = () => { 
+          window.open(match.fichier, "_blank"); 
+          document.getElementById("searchInput").value = match.title; // Optionnel: remplir l'input de recherche
+          suggestionList.innerHTML=""; 
+        };
+        suggestionList.appendChild(li);
+      });
+    }
+
+    // Recherche complète
+    function rechercher() {
+      let motCle = document.getElementById("searchInput").value.toLowerCase().trim();
+      let resultatsDiv = document.getElementById("resultatsRecherche");
+      suggestionList.innerHTML = "";
+      resultatsDiv.innerHTML = "<p>⏳ Recherche en cours...</p>";
+
+      if (!motCle) {
+        resultatsDiv.innerHTML = "<p style='color:red'>⚠️ Entrez un mot clé.</p>";
+        return;
+      }
+
+      let resultats = touspdfs.filter(d => 
+        d.title.toLowerCase().includes(motCle) || d.fichier.toLowerCase().includes(motCle)
+      );
+
+      if (resultats.length === 0) {
+        resultatsDiv.innerHTML = "<p style='color:orange'>😢 Aucun document trouvé.</p>";
+      } else {
+        let html = "<h3>Résultats :</h3><ul>";
+        resultats.forEach(r => {
+          html += `<li><b>${r.matiereName.charAt(0).toUpperCase() + r.matiereName.slice(1)}</b> → <a href="${r.fichier}" target="_blank">${r.title}</a></li>`;
+        });
+        html += "</ul>";
+        resultatsDiv.innerHTML = html;
+      }
+    }
+  </script>
+
+  <script src="scripts/index.js"></script>
+  <script src="scripts/theme.js"></script>
+</body>
+</html>

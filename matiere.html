@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matière</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 0; }
+    header { background: #2c3e50; color: white; padding: 20px; text-align: center; position: relative; }
+    h1 { margin: 0; }
+    .btn-retour {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #e67e22;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    .btn-retour:hover {
+      background: #d35400;
+    }
+    ul { max-width: 800px; margin: 20px auto; padding: 0; list-style: none; }
+    li { margin: 10px 0; padding: 15px; background: white; border-radius: 8px;
+          box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: 0.3s; }
+    li:hover { background: #2980b9; color: white; }
+    li a { text-decoration: none; color: inherit; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html" class="btn-retour">⬅ Accueil</a>
+    <h1 id="matiere-titre"></h1>
+  </header>
+
+  <ul id="liste-pdfs"></ul>
+
+  <footer style="margin-top:30px; padding:15px; background:#2c3e50; color:white; text-align:center;">
+    © 2025 CS St RAPHAEL - Bibliothèque scolaire
+  </footer>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const matiere = params.get("matiere");
+
+    if (!matiere) {
+      document.getElementById("matiere-titre").textContent = "❌ Aucune matière sélectionnée";
+    } else {
+      document.getElementById("matiere-titre").textContent = "📘 " + matiere.toUpperCase();
+
+      fetch("subjects.json")
+        .then(res => res.json())
+        .then(subjects => {
+          const sujet = subjects.find(s => s.name === matiere);
+
+          if (!sujet) {
+            document.getElementById("liste-pdfs").innerHTML =
+              "<li style='color:red'>⚠️ Matière introuvable</li>";
+            return;
+          }
+
+          // **********************************************
+          // CORRECTION ICI : Ajouter le préfixe 'json/'
+          // **********************************************
+          fetch(`json/${sujet.file}`)
+            .then(res => res.json())
+            .then(pdfsData => { // Renommé pour éviter la confusion avec la variable 'pdfs'
+              const liste = document.getElementById("liste-pdfs");
+              liste.innerHTML = "";
+              
+              // On suppose que pdfsData est le tableau d'objets comme dans maths.json
+              // [{ "title": "algebre", "file": "pdfs/maths/algebre.pdf" }]
+
+              if (!Array.isArray(pdfsData) || pdfsData.length === 0) {
+                liste.innerHTML = "<li style='color:orange'>😢 Aucun document pour cette matière.</li>";
+              } else {
+                pdfsData.forEach(item => {
+                  const li = document.createElement("li");
+                  const link = document.createElement("a");
+                  
+                  // Puisque item.file contient déjà le chemin complet (ex: pdfs/maths/algebre.pdf)
+                  // nous n'avons pas besoin d'ajouter de préfixe ici.
+                  link.href = item.file; 
+                  link.textContent = item.title;
+                  link.target = "_blank"; // ouvrir dans un nouvel onglet
+
+                  li.appendChild(link);
+                  liste.appendChild(li);
+                });
+              }
+            })
+            .catch(err => {
+              console.error("Erreur JSON matière :", err);
+              document.getElementById("liste-pdfs").innerHTML =
+                "<li style='color:red'>⚠️ Impossible de charger les fichiers PDF pour cette matière.</li>";
+            });
+        })
+        .catch(err => {
+          console.error("Erreur subjects.json :", err);
+          document.getElementById("liste-pdfs").innerHTML =
+            "<li style='color:red'>⚠️ Impossible de charger la liste des matières.</li>";
+        });
+    }
+  </script>
+</body>
+</html>
