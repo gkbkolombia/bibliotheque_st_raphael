@@ -1,0 +1,30 @@
+[
+  {
+    "name": "maths",
+    "file": "maths.json"
+  },
+  {
+    "name": "pct",
+    "file": "pct.json"
+  },
+  {
+    "name": "svt",
+    "file": "svt.json"
+  },
+  {
+    "name": "histo-geo",
+    "file": "histo-geo.json"
+  },
+  {
+    "name": "ecm",
+    "file": "ecm.json"
+  },
+  {
+    "name": "anglais",
+    "file": "anglais.json"
+  },
+  {
+    "name": "francais",
+    "file": "francais.json"
+  }
+]
